@@ -20,7 +20,7 @@ public class ruleEvaluatorTest implements java.io.Serializable{
 
 	@Before
 	public void setUp() throws Exception {
-		ruleFixture = new Rule("outlook", "sunny", "play", "yes");
+		ruleFixture = new Rule("outlook", "sunny", 0, "play", "yes", 4);
 	}
 
 	@After

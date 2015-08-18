@@ -7,97 +7,95 @@ import java.util.Set;
 
 public class Rule {
 	//Decided to use LinkedHashMap so that the keys are based on insertion order. Originally to simplify the equals method when comparing antecedents. In case order makes them not equal.
-	private LinkedHashMap<String, String> predictedClass ;
-	private LinkedHashMap<String, String> antecedent;
+	private Class predictedClass ;
+	private ArrayList<Attribute> antecedent;
 	private double accuracy;
 	//private Double precision;
 	//private Double recall;
-	private Integer examplesCovered;
+	private Integer examplesCovered = 0;
 
 	
 	public Rule(){
-		this.predictedClass = new LinkedHashMap<String, String>();
-		this.antecedent = new LinkedHashMap<String, String>();
+		this.predictedClass = new Class();
+		this.antecedent = new ArrayList<Attribute>();
 	
 	}
 	
 	//Clone constructor
 	public Rule(Rule another){
-		this.predictedClass = (LinkedHashMap) another.predictedClass.clone();
-		this.antecedent = (LinkedHashMap) another.antecedent.clone();
+		this.predictedClass = (Class) another.predictedClass;
+		this.antecedent = (ArrayList) another.antecedent.clone();
 		this.accuracy = another.accuracy;
 		this.examplesCovered = another.examplesCovered;
 	}
 	
-	public Rule(String attribute, String value, String classPred, String classValue){
-		this.predictedClass = new LinkedHashMap<String, String>();
-		this.antecedent = new LinkedHashMap<String, String>();
-		this.antecedent.put(attribute, value);
-		this.predictedClass.put(classPred, classValue);
+	public Rule(String attribute, String value, int attrPosition, String classPred, String classValue, int classPosition){
+		this.predictedClass = new Class(classPred, classValue, classPosition);
+		this.antecedent = new ArrayList<Attribute>();
+		
+		this.antecedent.add(new Attribute(attribute, value, attrPosition));
+		
 
 	}
 	
-	public Rule(String classPred, String classValue){
-		this.predictedClass = new LinkedHashMap<String, String>();
-		this.antecedent = new LinkedHashMap<String, String>();
-		this.predictedClass.put(classPred, classValue);
+	public Rule(String classPred, String classValue, int position){
+	
+		this.antecedent = new ArrayList<Attribute>();
+		
+		this.predictedClass = new Class(classPred, classValue, position);
 
 	}
 
-	public LinkedHashMap<String, String> getPredictedClass() {
+	public Class getPredictedClass() {
 		return predictedClass;
 	}
 
-	public void setPredictedClass(String classPred, String classValue) {
-		predictedClass.remove(classPred);
-		predictedClass.put(classPred, classValue);
+	public void setPredictedClass(String classPred, String classValue, int position) {
+		this.predictedClass.setName(classPred);
+		this.predictedClass.setValue(classValue);
+		this.predictedClass.setPosition(position);
 	}
 
-	public LinkedHashMap<String, String> getAntecedent() {
+	public ArrayList<Attribute> getAntecedent() {
 		return antecedent;
 	}
 
 	
-	public Set<String> getAttributes(){
-		return antecedent.keySet();
-	}
+
 	
-	public void addConditionsToRule(String attribute, String value){
-		antecedent.put(attribute, value);
+	public void addConditionsToRule(String attribute, String value, int position){
+		antecedent.add(new Attribute(attribute, value, position));
 	}
 	
 	public String toString(){
 		String text = "IF ";
-		ArrayList<String> tempHolder = new ArrayList<String>();
+		ArrayList<Attribute> tempHolder = getAntecedent();
 		
-		for (String attribute : getAttributes()){
-			tempHolder.add(attribute);
-		}
+
 		
 		for(int i = 0; i < tempHolder.size(); i++){
 			
-			String attribute = tempHolder.get(i);
+			Attribute attribute = tempHolder.get(i);
+			String attrName = attribute.getName();
+			String attrValue = attribute.getValue();
 			if(i == tempHolder.size() - 1){
 				
-				text +=  attribute + " = " + antecedent.get(attribute);
+				text +=  attrName + " = " + attrValue;
 
 			}
 			else {
-				text += attribute + " = " + antecedent.get(attribute) + " AND ";
+				text += attrName + " = " + attrValue + " AND ";
 			}
 			
 		}
 		
-		for (String key : predictedClass.keySet()){
-			tempHolder = new ArrayList<String>();
-			tempHolder.add(key);
-		}
-		text += " THEN " + tempHolder.get(0) + " = " + predictedClass.get(tempHolder.get(0));
+	
+		text += " THEN " + predictedClass.getName() + " = " + predictedClass.getValue();
 		
 		return text;
 	}
 	
-	public Double getAccuracy() {
+	public double getAccuracy() {
 		return accuracy;
 	}
 
@@ -121,7 +119,7 @@ public class Rule {
 		this.recall = recall;
 	} */
 
-	public Integer getExamplesCovered() {
+	public int getExamplesCovered() {
 		return examplesCovered;
 	}
 

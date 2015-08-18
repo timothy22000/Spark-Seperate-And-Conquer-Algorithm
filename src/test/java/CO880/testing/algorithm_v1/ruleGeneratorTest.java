@@ -25,14 +25,14 @@ public class ruleGeneratorTest extends TestCase {
 		filePath = "weather.nominaltest.arff";
 		rulesTestFixture = new ArrayList<Rule>();
 		
-		Rule rule1 = new Rule("humidity", "high", "play", "yes");
-		Rule rule2 = new Rule("humidity", "high", "play", "no");
-		Rule rule3 = new Rule("humidity", "normal", "play", "yes");
-		Rule rule4 = new Rule("humidity", "normal", "play", "no");
-		Rule rule5 = new Rule("windy", "TRUE", "play", "yes");
-		Rule rule6 = new Rule("windy", "TRUE", "play", "no");
-		Rule rule7 = new Rule("windy", "FALSE", "play", "yes");
-		Rule rule8 = new Rule("windy", "FALSE", "play", "no");
+		Rule rule1 = new Rule("humidity", "high", 0,  "play", "yes", 2);
+		Rule rule2 = new Rule("humidity", "high", 0, "play", "no", 2);
+		Rule rule3 = new Rule("humidity", "normal", 0, "play", "yes", 2);
+		Rule rule4 = new Rule("humidity", "normal", 0, "play", "no", 2);
+		Rule rule5 = new Rule("windy", "TRUE", 1, "play", "yes", 2);
+		Rule rule6 = new Rule("windy", "TRUE", 1,  "play", "no", 2);
+		Rule rule7 = new Rule("windy", "FALSE", 1,  "play", "yes", 2);
+		Rule rule8 = new Rule("windy", "FALSE", 1, "play", "no", 2);
 		
 		
 		rulesTestFixture.add(rule1);
@@ -55,10 +55,11 @@ public class ruleGeneratorTest extends TestCase {
 		
 		RuleGenerator ruleGen = RuleGenerator.getInstance();
 		ArrayList<Rule> generatedRules = ruleGen.generateRules(filePath);
-		/* System.out.println(generatedRules);
-		System.out.println(rulesTestFixture); */
+		System.out.println(generatedRules);
+		System.out.println(rulesTestFixture); 
 		Assert.assertNotNull(generatedRules); 
-		assertThat(generatedRules, is(rulesTestFixture));
+		assertEquals(generatedRules, rulesTestFixture);
+		//assertThat(generatedRules, is(rulesTestFixture));
 
 	}
 	

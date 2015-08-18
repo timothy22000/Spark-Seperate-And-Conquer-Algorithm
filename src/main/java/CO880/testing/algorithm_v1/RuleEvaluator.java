@@ -27,24 +27,12 @@ public class RuleEvaluator implements java.io.Serializable {
 	}
 	
 	public void evaluateRules(Rule rule, JavaRDD<List<String>> wordsInArray ){
-		System.out.println(wordsInArray.collect());
-		Set<String> attributes = rule.getAttributes();
-		LinkedHashMap<String, String> predictedClass = rule
-				.getPredictedClass();
-		LinkedHashMap<String, String> antecedent = rule.getAntecedent();
-		final ArrayList<String> attrValues = new ArrayList<String>();
-		final ArrayList<String> classValues = new ArrayList<String>();
+		//System.out.println(wordsInArray.collect());
+		final ArrayList<Attribute> attributes = rule.getAntecedent();
+		final Class predictedClass = rule.getPredictedClass();
+		
 
-		Iterator<String> attrIterator = attributes.iterator();
-		while (attrIterator.hasNext()) {
-			String attribute = attrIterator.next();
-
-			attrValues.add(antecedent.get(attribute));
-		}
-
-		for (String key : predictedClass.keySet()) {
-			classValues.add(predictedClass.get(key));
-		}
+		final int noOfMatches = attributes.size();
 
 		// Create Key/Value pairs with word as key and count as value and
 		// then sum them up using reduceByKey
@@ -56,32 +44,53 @@ public class RuleEvaluator implements java.io.Serializable {
 									List<String> t) throws Exception {
 								// TODO Auto-generated method stub
 								
-								//NEed to test for position in the event of another attribute having the same values.
+								//Need to test for position in the event of another attribute having the same values.
+			
+								int matchesSoFar = 0;
+								boolean classMatch = false;
+								
 								if (!t.isEmpty() && t.size() > 1) {
-									if (t.containsAll(attrValues)
-											&& t.containsAll(classValues)) {
+									for (int i = 0; i < attributes.size(); i++) {
+										Attribute attribute = attributes.get(i);
+										//System.out.println(attribute);
+										//System.out.println(t.get(attribute.getPosition()));
+										//System.out.println(attribute.getValue());
+										if (attribute.getValue().equals(
+												t.get(attribute.getPosition()))) {
+											matchesSoFar++;
+										}
+									}
+									if (predictedClass.getValue()
+											.equals(t.get(predictedClass
+													.getPosition()))) {
+										classMatch = true;
+									}
+									if (matchesSoFar == noOfMatches
+											&& classMatch == true) {
 										return new Tuple2("tp", 1);
 									}
 
-									else if (t.containsAll(attrValues)
-											&& !t.containsAll(classValues)) {
+									else if (matchesSoFar == noOfMatches
+											&& classMatch == false) {
 										return new Tuple2("fp", 1);
 									}
 
-									else if (!t.containsAll(attrValues)
-											&& t.containsAll(classValues)) {
+									else if (matchesSoFar < noOfMatches
+											&& classMatch == true) {
 										return new Tuple2("fn", 1);
 									}
 
-									else if (!t.containsAll(attrValues)
-											&& !t.containsAll(classValues)) {
+									else if (matchesSoFar < noOfMatches
+											&& classMatch == false) {
 										return new Tuple2("tn", 1);
 									}
 
 									else {
 										return new Tuple2("error", 1);
 									}
-								} else {
+								}
+								
+								else {
 									return new Tuple2("error", 1);
 								}
 							}
@@ -99,23 +108,26 @@ public class RuleEvaluator implements java.io.Serializable {
 		/*
 		 * Collect all the required values to calculate accuracy, precision and recall.
 		 */
-		Double numerator1 = 0.0;
-		Double numerator2 = 0.0;
+		double numerator1 = 0.0;
+		double numerator2 = 0.0;
 		//Double denomForRecall = 0.0;
 		//Double denomForPrecision = 0.0;
-		Double denomForAccuracy = 0.0;
-
+		double denomForAccuracy = 0.0;
+		boolean isThereTP = false;
+		
 		for (int i = 0; i < results.size(); i++) {
 			Tuple2<String, Integer> tuple = results.get(i);
-			System.out.println(tuple);
+			
 			if (tuple._1.equals("tp")) {
 				numerator1 += (double) tuple._2;
 				numerator2 += (double) tuple._2;
 				//denomForPrecision += (double) tuple._2;
 				//denomForRecall += (double) tuple._2;
 				denomForAccuracy += (double) tuple._2;
+				
 				rule.setExamplesCovered(tuple._2);
-			}
+				isThereTP = true;
+			} 
 
 			if (tuple._1.equals("tn")) {
 				numerator2 += (double) tuple._2;
@@ -131,6 +143,11 @@ public class RuleEvaluator implements java.io.Serializable {
 				//denomForRecall += (double) tuple._2;
 				denomForAccuracy += (double) tuple._2;
 			}
+		}
+		
+		if(isThereTP == false){
+			rule.setExamplesCovered(0);
+			numerator2 = 0;
 		}
 		// System.out.println(numerator2);
 		rule.setAccuracy((double) (numerator2 / denomForAccuracy));
