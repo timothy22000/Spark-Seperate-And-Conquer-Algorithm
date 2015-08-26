@@ -1,11 +1,13 @@
 package CO880.testing.algorithm_v1;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Set;
 
-public class Rule {
+/**
+ * Rule class that combines information from Attribute and Class to form a rule with antecedents and consequents
+ * @author Timothy Sum
+ *
+ */
+public class Rule implements java.io.Serializable{
 	//Decided to use LinkedHashMap so that the keys are based on insertion order. Originally to simplify the equals method when comparing antecedents. In case order makes them not equal.
 	private Class predictedClass ;
 	private ArrayList<Attribute> antecedent;
@@ -13,8 +15,10 @@ public class Rule {
 	//private Double precision;
 	//private Double recall;
 	private Integer examplesCovered = 0;
-
 	
+	/**
+	 * Rule constructor
+	 */
 	public Rule(){
 		this.predictedClass = new Class();
 		this.antecedent = new ArrayList<Attribute>();
@@ -29,6 +33,15 @@ public class Rule {
 		this.examplesCovered = another.examplesCovered;
 	}
 	
+	/**
+	 * Rule constructor
+	 * @param attribute name
+	 * @param attribute value
+	 * @param attribute's position
+	 * @param class name 
+	 * @param class value
+	 * @param class position
+	 */
 	public Rule(String attribute, String value, int attrPosition, String classPred, String classValue, int classPosition){
 		this.predictedClass = new Class(classPred, classValue, classPosition);
 		this.antecedent = new ArrayList<Attribute>();
@@ -38,6 +51,12 @@ public class Rule {
 
 	}
 	
+	/**
+	 * Rule constructor for rules without any antecedent.
+	 * @param class name
+	 * @param class value
+	 * @param class position
+	 */
 	public Rule(String classPred, String classValue, int position){
 	
 		this.antecedent = new ArrayList<Attribute>();
@@ -46,22 +65,41 @@ public class Rule {
 
 	}
 
+	/**
+	 * Returns the Class of the rule
+	 * @return Class 
+	 */
 	public Class getPredictedClass() {
 		return predictedClass;
 	}
-
+	
+	/**
+	 * Sets the information that is required for a Class
+	 * @param class name 
+	 * @param class value
+	 * @param class position
+	 */
 	public void setPredictedClass(String classPred, String classValue, int position) {
 		this.predictedClass.setName(classPred);
 		this.predictedClass.setValue(classValue);
 		this.predictedClass.setPosition(position);
 	}
 
+	/**
+	 * Returns the list of Attributes for the rule
+	 * @return ArrayList of Attribute
+	 */
 	public ArrayList<Attribute> getAntecedent() {
 		return antecedent;
 	}
 
 	
-
+	/**
+	 * Adds new conditions to the antecedent of the rule
+	 * @param attribute name
+	 * @param attribute value
+	 * @param position
+	 */
 	
 	public void addConditionsToRule(String attribute, String value, int position){
 		antecedent.add(new Attribute(attribute, value, position));
@@ -95,9 +133,18 @@ public class Rule {
 		return text;
 	}
 	
+	/**
+	 * Gets the accuracy of this rule
+	 * @return accuracy
+	 */
 	public double getAccuracy() {
 		return accuracy;
 	}
+	
+	/**
+	 * Sets the accuracy of this rule
+	 * @param accuracy
+	 */
 
 	public void setAccuracy(Double accuracy) {
 		this.accuracy = accuracy;
@@ -118,11 +165,19 @@ public class Rule {
 	public void setRecall(Double recall) {
 		this.recall = recall;
 	} */
-
+	
+	/**
+	 * Gets the number of examples covered by this particular rule
+	 * @returns int
+	 */
 	public int getExamplesCovered() {
 		return examplesCovered;
 	}
-
+	
+	/**
+	 * Sets the number of examples covered by this rule.
+	 * @param examplesCovered
+	 */
 	public void setExamplesCovered(Integer examplesCovered) {
 		this.examplesCovered = examplesCovered;
 	}

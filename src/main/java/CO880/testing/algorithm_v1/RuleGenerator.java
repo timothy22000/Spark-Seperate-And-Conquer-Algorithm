@@ -1,18 +1,18 @@
 package CO880.testing.algorithm_v1;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-
+import java.io.*;
+import java.util.*;
+import java.net.*;
+import org.apache.hadoop.fs.*;
+import org.apache.hadoop.conf.*;
+import org.apache.hadoop.io.*;
+import org.apache.hadoop.mapred.*;
+import org.apache.hadoop.util.*;
+/**
+ * Class that makes the first pass through the file to generate list of possible rules.
+ * @author Timothy Sum
+ *
+ */
 public class RuleGenerator implements java.io.Serializable{
 	private static RuleGenerator instance = new RuleGenerator();
 	//private static ArrayList<Rule> generatedRules;
@@ -29,7 +29,10 @@ public class RuleGenerator implements java.io.Serializable{
 		
 	}
 	
-	
+	/**
+	 * Returns a singleton instance of RuleGenerator
+	 * @return RuleGenerator
+	 */
 	public static RuleGenerator getInstance(){
 		return instance;
 	}
@@ -141,13 +144,19 @@ public class RuleGenerator implements java.io.Serializable{
 		return generatedRules;
 
 	} */
-
+	
+	/**
+	 * File I/O method to open the file and close the buffer once done.
+	 * @param filePath
+	 */
 	public static void openFile(String filePath) {
-		Path file = Paths.get(filePath);
-		filteredLines = new ArrayList<List<String>>();
-		try (InputStream in = Files.newInputStream(file);
-				BufferedReader reader = new BufferedReader(
-						new InputStreamReader(in))) {
+		try{
+			//The path is not java.io or java.nio's Path, it is hadoop's Path implementation to handle hdfs
+			Path file = new Path(filePath);
+			filteredLines = new ArrayList<List<String>>();
+			FileSystem fs = FileSystem.get(new Configuration());
+			BufferedReader reader=new BufferedReader(new InputStreamReader(fs.open(file)));
+			
 			String line = null;
 			while ((line = reader.readLine()) != null) {
 				if (line.contains("@attribute")) {
@@ -162,8 +171,12 @@ public class RuleGenerator implements java.io.Serializable{
 
 	}
 	
-	// Generating rules by extracting attributes from files without making it a
-	// Spark job. Just using BufferedReader.
+	/**
+	 * Generating rules by extracting attributes from files without making it a Spark job. Just using BufferedReader.
+	 * @param filePath
+	 * @return ArrayList of Rule
+	 */
+	 
 	public ArrayList<Rule> generateRules(String filePath) {
 
 		openFile(filePath);
@@ -176,6 +189,11 @@ public class RuleGenerator implements java.io.Serializable{
 
 	}
 	
+	/**
+	 * Handles the processing required to extract only the relevant information to form the list of rules.
+	 * @param extractedListFromFile
+	 * @return ArrayList of Rule
+	 */
 	private static ArrayList<Rule> processingForRules(List<List<String>> extractedListFromFile){
 		ArrayList<String> attributes = new ArrayList<String>();
 		ArrayList<String> exampleClass = new ArrayList<String>();

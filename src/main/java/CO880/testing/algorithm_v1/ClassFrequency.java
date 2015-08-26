@@ -12,8 +12,13 @@ import org.apache.spark.api.java.function.PairFunction;
 
 import scala.Tuple2;
 
+/**
+ * This class discovers the majority class of the instances in the file.
+ * @author Timothy Sum
+ *
+ */
 
-public class ClassFrequency {
+public class ClassFrequency implements java.io.Serializable {
 
 	
 	private static String majorityClassValue;
@@ -23,12 +28,22 @@ public class ClassFrequency {
 		
 	}
 	
+	/**
+	 * Creates a singleton instance of ClassFrequency
+	 * @return ClassFrequency object
+	 */
 	public ClassFrequency getInstance(){
 		return instance;
 	}
 	
 	
-	// Returns a default rule after identifying the majority class
+	/**
+	 * Important method that starts a Spark job to analyze through the file to discover the most common/majority class value.
+	 * 
+	 * @param a filtered RDD, data
+	 * @param filePath
+	 * @return Default Rule
+	 */
 	public static Rule getDefaultRule(JavaRDD<String> data, String filePath){
 
 		RuleGenerator generator = RuleGenerator.getInstance();

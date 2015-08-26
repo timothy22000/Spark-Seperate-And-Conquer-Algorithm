@@ -13,6 +13,11 @@ import org.apache.spark.api.java.function.PairFunction;
 
 import scala.Tuple2;
 
+/**
+ * The RuleEvaluator contains the mechanism that calls a Spark job to evaluate each rule against the instances of the dataset.
+ * @author Timothy Sum
+ *
+ */
 public class RuleEvaluator implements java.io.Serializable {
 	//Serializable is needed since the Driver needs to send the class that contains the method across to the nodes by serializing it and then sending it while the nodes will deserialize it.
 	private static RuleEvaluator instance = new RuleEvaluator();
@@ -21,13 +26,21 @@ public class RuleEvaluator implements java.io.Serializable {
 		
 	}
 	
-	
+	/**
+	 * Returns a singleton instance of RuleEvaluator
+	 * @return RuleEvaluator
+	 */
 	public static RuleEvaluator getInstance(){
 		return instance;
 	}
 	
+	/**
+	 * Method that evaluate rules against the remaining examples in the dataset.
+	 * @param rule
+	 * @param wordsInArray (remaining examples)
+	 */
 	public void evaluateRules(Rule rule, JavaRDD<List<String>> wordsInArray ){
-		//System.out.println(wordsInArray.collect());
+	
 		final ArrayList<Attribute> attributes = rule.getAntecedent();
 		final Class predictedClass = rule.getPredictedClass();
 		

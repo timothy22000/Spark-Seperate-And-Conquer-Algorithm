@@ -1,15 +1,31 @@
 package CO880.testing.algorithm_v1;
 
+/**
+ * Class to store extracted information regarding predicted class from arff file.
+ * @author Timothy Sum
+ *
+ */
 public class Class implements java.io.Serializable{
 	private String name;
 	private int position;
 	private String value;
 	
+	/**
+	 * Class constructor
+	 * @param class name
+	 * @param class position
+	 */
 	public Class(String name, int position){
 		this.name = name;
 		this.position = position;
 	}
 	
+	/**
+	 * Class constructor
+	 * @param name
+	 * @param value
+	 * @param position
+	 */
 	public Class(String name, String value, int position){
 		this.name = name;
 		this.value = value;
@@ -19,27 +35,51 @@ public class Class implements java.io.Serializable{
 	public Class(){
 		
 	}
-
+	
+	/**
+	 * Returns name of the class
+	 * @return class name
+	 */
 	public String getName() {
 		return name;
 	}
-
+	
+	/**
+	 * Sets the class name
+	 * @param name
+	 */
 	public void setName(String name) {
 		this.name = name;
 	}
-
+	
+	/**
+	 * Gets the position in the file for the class
+	 * @return position number
+	 */
 	public int getPosition() {
 		return position;
 	}
 
+	/**
+	 * Sets the position of the class in the file.
+	 * @param position
+	 */
 	public void setPosition(int position) {
 		this.position = position;
 	}
-
+	
+	/**
+	 * Get the value of the class
+	 * @return String classValue
+	 */
 	public String getValue() {
 		return value;
 	}
-
+	
+	/**
+	 * Sets the value of the class
+	 * @param value
+	 */
 	public void setValue(String value) {
 		this.value = value;
 	}
