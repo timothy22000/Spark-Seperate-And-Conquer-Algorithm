@@ -40,7 +40,7 @@ public class RuleEvaluator implements java.io.Serializable {
 	 * @param wordsInArray (remaining examples)
 	 */
 	public void evaluateRules(Rule rule, JavaRDD<List<String>> wordsInArray ){
-	
+		//System.out.println(wordsInArray.collect());
 		final ArrayList<Attribute> attributes = rule.getAntecedent();
 		final Class predictedClass = rule.getPredictedClass();
 		
@@ -49,8 +49,7 @@ public class RuleEvaluator implements java.io.Serializable {
 
 		// Create Key/Value pairs with word as key and count as value and
 		// then sum them up using reduceByKey
-		JavaPairRDD<String, Integer> positivesAndNegatives = wordsInArray
-				.mapToPair(
+		JavaPairRDD<String, Integer> positivesAndNegatives = wordsInArray.mapToPair(
 						new PairFunction<List<String>, String, Integer>() {
 
 							public Tuple2<String, Integer> call(
@@ -115,8 +114,7 @@ public class RuleEvaluator implements java.io.Serializable {
 							}
 						});
 
-		List<Tuple2<String, Integer>> results = positivesAndNegatives
-				.collect();
+		List<Tuple2<String, Integer>> results = positivesAndNegatives.collect();
 		
 		/*
 		 * Collect all the required values to calculate accuracy, precision and recall.
@@ -138,7 +136,7 @@ public class RuleEvaluator implements java.io.Serializable {
 				//denomForRecall += (double) tuple._2;
 				denomForAccuracy += (double) tuple._2;
 				
-				rule.setExamplesCovered(tuple._2);
+				
 				isThereTP = true;
 			} 
 
@@ -148,6 +146,7 @@ public class RuleEvaluator implements java.io.Serializable {
 			}
 
 			if (tuple._1.equals("fp")) {
+				numerator1 += (double) tuple._2;
 				//denomForPrecision += (double) tuple._2;
 				denomForAccuracy += (double) tuple._2;
 			}
@@ -158,14 +157,16 @@ public class RuleEvaluator implements java.io.Serializable {
 			}
 		}
 		
+		rule.setExamplesCovered((int) numerator1);
+		
 		if(isThereTP == false){
 			rule.setExamplesCovered(0);
 			numerator2 = 0;
 		}
 		// System.out.println(numerator2);
 		rule.setAccuracy((double) (numerator2 / denomForAccuracy));
-		System.out.println(rule.getAccuracy());
-		System.out.println(rule.getExamplesCovered());
+		//System.out.println(rule.getAccuracy());
+		//System.out.println(rule.getExamplesCovered());
 		//rule.setRecall((double) (numerator1 / denomForRecall));
 		// System.out.println(testRule.getRecall());
 		//rule.setPrecision((double) (numerator1 / denomForPrecision));

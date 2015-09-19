@@ -5,6 +5,8 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
@@ -12,9 +14,12 @@ import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.Function;
 import org.apache.spark.api.java.function.Function2;
 import org.apache.spark.api.java.function.PairFunction;
+import org.apache.spark.serializer.KryoRegistrator;
 import org.apache.spark.storage.StorageLevel;
 
 import scala.Tuple2;
+
+import com.esotericsoftware.kryo.Kryo;
 
 /**
  * Main Driver program for the Spark jobs needed for Separate and Conquer algorithm.
@@ -44,18 +49,24 @@ public class SeCo {
 		    System.exit(1);
 		} 
 		
-		showWarning(); 
+		showWarning();  
 		
-		SparkConf sparkConf = new SparkConf().setAppName("SeCo Algorithm");
-		JavaSparkContext sc = new JavaSparkContext(sparkConf); */
+		SparkConf sparkConf = new SparkConf().setAppName("SeCo Algorithm"); */
+		//sparkConf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer");
+		
+	
+		//sparkConf.set("spark.kryo.registrator", "CO880.testing.algorithm_v1.Registrator");
+		//JavaSparkContext sc = new JavaSparkContext(sparkConf);
+		
 		
 		JavaSparkContext sc = new JavaSparkContext("local", "SeCo Algorithm");
-		
+		Logger rootLogger = Logger.getRootLogger(); 
+        rootLogger.setLevel(Level.WARN); 
 		//train(sc, args[0]);
 		train(sc);
 		
-		//test(sc, args[1], bestRuleHolder);
-		test(sc, bestRuleHolder);
+		
+		
 
 		
 		
@@ -76,8 +87,10 @@ public class SeCo {
 			Rule bestRules = bestRuleHolder.get(i);
 			System.out.println("Best Rule " + i + ": " + bestRules);
 		}
-
+		test(sc, bestRuleHolder);
+		//test(sc, args[1], bestRuleHolder);
 	} 
+	
 	
 	/**
 	 * Test the list of best rules on a 10% unknown test dataset.
@@ -85,9 +98,9 @@ public class SeCo {
 	 */
 	public static void test(JavaSparkContext sc, String filename, final ArrayList<Rule> bestRuleHolder1){
 		//Load data
-		//JavaRDD<String> arff = sc.textFile("nurserytest.arff");	
+			
 		TEST_FILE_LOCATION = "hdfs:///user/ts444/" + filename;
-		//TEST_FILE_LOCATION = "mushroomtest.arff";
+		
 		JavaRDD<String> arff = sc.textFile(TEST_FILE_LOCATION);
 		
 		//Filter out header files (anything with @) and then split the lines into words
@@ -122,7 +135,7 @@ public class SeCo {
 					public Tuple2<String, Integer> call(List<String> t)
 							throws Exception {
 						// TODO Auto-generated method stub
-						System.out.println(bestRuleHolder1);
+						//System.out.println(bestRuleHolder1);
 						
 						outerloop:
 						for(int i = 0; i < bestRuleHolder1.size(); i++ ){
@@ -230,7 +243,7 @@ public class SeCo {
 	public static void test(JavaSparkContext sc, final ArrayList<Rule> bestRuleHolder1){
 		//Load data
 		
-		TEST_FILE_LOCATION = "mushroomtest.arff";
+		TEST_FILE_LOCATION = "nurserytest.arff";
 		JavaRDD<String> arff = sc.textFile(TEST_FILE_LOCATION);
 		
 		//Filter out header files (anything with @) and then split the lines into words
@@ -265,7 +278,7 @@ public class SeCo {
 					public Tuple2<String, Integer> call(List<String> t)
 							throws Exception {
 						// TODO Auto-generated method stub
-						System.out.println(bestRuleHolder1);
+						
 						
 						outerloop:
 						for(int i = 0; i < bestRuleHolder1.size(); i++ ){
@@ -403,13 +416,13 @@ public class SeCo {
 
 
 		//Holder for best rules
-
+		
 		bestRuleHolder = new ArrayList<Rule>();
 
 		//Break the lines into arrays of words. wordsInArray kind of represents Examples.
 		JavaRDD<List<String>> wordsInArray = data.map(new SplitLines());
 		wordsInArray.persist(StorageLevel.MEMORY_AND_DISK());
-		//System.out.println(wordsInArray.collect());
+		
 
 		//Generate rules using RuleGenerator
 		RuleGenerator generator = RuleGenerator.getInstance();
@@ -425,7 +438,7 @@ public class SeCo {
 			Rule bestRule = refinements(rulesGenerated, wordsInArray);
 			
 			bestRuleHolder.add(bestRule);
-			
+			System.out.println("Best Rule So Far: " + bestRule);
 			final ArrayList<Attribute> attributes = bestRule.getAntecedent();
 			final Class predictedClass = bestRule.getPredictedClass();
 			
@@ -439,8 +452,7 @@ public class SeCo {
 					// TODO Auto-generated method stub
 					
 					int matchesSoFar = 0;
-					boolean classMatch = false;
-					
+			
 					
 					if (!t.isEmpty() || !t.contains(null) || t.size() > 0 ) {
 						for (int i = 0; i < attributes.size(); i++) {
@@ -453,11 +465,8 @@ public class SeCo {
 								matchesSoFar++;
 							}
 						}
-						if (predictedClass.getValue().equals(
-								t.get(predictedClass.getPosition()))) {
-							classMatch = true;
-						}
-						if (matchesSoFar == noOfMatches && classMatch == true) {
+						
+						if (matchesSoFar == noOfMatches ) {
 							return false;
 						}
 
@@ -473,7 +482,7 @@ public class SeCo {
 
 				
 			});
-			
+			wordsInArray.persist(StorageLevel.MEMORY_AND_DISK());
 			//System.out.println("Examples Left: " + wordsInArray.collect().size() + "What's Left inside: " + wordsInArray.collect());
 		
 		} 
@@ -489,7 +498,7 @@ public class SeCo {
 	public static void train(JavaSparkContext sc){
 		//Load data
 		
-		FILE_LOCATION = "mushroom.arff";
+		FILE_LOCATION = "nurserylarge.arff";
 		JavaRDD<String> arff = sc.textFile(FILE_LOCATION);
 		
 
@@ -527,7 +536,7 @@ public class SeCo {
 		//Break the lines into arrays of words. wordsInArray kind of represents Examples.
 		JavaRDD<List<String>> wordsInArray = data.map(new SplitLines());
 		wordsInArray.persist(StorageLevel.MEMORY_AND_DISK());
-		//System.out.println(wordsInArray.collect());
+	
 
 		//Generate rules using RuleGenerator
 		RuleGenerator generator = RuleGenerator.getInstance();
@@ -557,8 +566,6 @@ public class SeCo {
 					// TODO Auto-generated method stub
 					
 					int matchesSoFar = 0;
-					boolean classMatch = false;
-					
 					
 					if (!t.isEmpty() || !t.contains(null) || t.size() > 0 ) {
 						for (int i = 0; i < attributes.size(); i++) {
@@ -571,11 +578,8 @@ public class SeCo {
 								matchesSoFar++;
 							}
 						}
-						if (predictedClass.getValue().equals(
-								t.get(predictedClass.getPosition()))) {
-							classMatch = true;
-						}
-						if (matchesSoFar == noOfMatches && classMatch == true) {
+						
+						if (matchesSoFar == noOfMatches) {
 							return false;
 						}
 
@@ -593,7 +597,7 @@ public class SeCo {
 			});
 			
 			//System.out.println("Examples Left: " + wordsInArray.collect().size() + "What's Left inside: " + wordsInArray.collect());
-		
+			System.out.println("Best Rule So Far: " + bestRule);
 		} 
 		
 		bestRuleHolder.add(defaultRule);
@@ -618,7 +622,8 @@ public class SeCo {
 		
 		//Stop when no refinements can be done.
 		while (!refinedRules.isEmpty()) {
-
+			
+			
 			//Extract information required for a rule and run a Spark Job to calculate its accuracy, precision and recall.
 			
 			
@@ -639,6 +644,10 @@ public class SeCo {
 			if(prevBestEval == BestEval && prevBestRule != null && prevBestRule.equals(BestRule)){
 				break;
 			} 
+			
+			if(BestRule.getAntecedent().size() == 5){
+				break;
+			} 
 			prevBestEval = BestEval;
 			prevBestRule = BestRule;
 			double MaxEval = Double.NEGATIVE_INFINITY;
@@ -649,7 +658,10 @@ public class SeCo {
 				Rule testRule1 = refinedRules.get(a);
 				RuleEvaluator ruleEvaluator = RuleEvaluator.getInstance();
 				ruleEvaluator.evaluateRules(testRule1, examples);
-
+				
+				/* if(examples.collect().size() >= 100 && testRule1.getExamplesCovered() < 5){
+					continue;
+				} */
 				if (testRule1.getAccuracy() > MaxEval) {
 					MaxEval = testRule1.getAccuracy();
 					MaxRule = testRule1;
@@ -658,13 +670,13 @@ public class SeCo {
 			}
 			
 			//Store if we have a new best rule.
-			if (MaxEval >= BestEval) {
+			if (MaxEval > BestEval) {
 				BestEval = MaxEval;
 				BestRule = MaxRule;
 			}
 			
 			//If the evaluation quality falls (accuracy decreases) with refinements, then stop since refining rules with lower accuracy won't improve it as much as the best evaluation seen so far.
-			else if (MaxEval < BestEval){
+			else if (MaxEval <= BestEval){
 				break;
 			} 
 			
@@ -699,7 +711,7 @@ public class SeCo {
 		/*Create a new list of rule that adding on new conditions(except existing attributes) to the best rule.
 		 Will be used to refine the best rule. */
 		 
-		ArrayList<Rule> remainingRules = new ArrayList<Rule>();
+		
 		ArrayList<Attribute> bestRuleAttr = bestRule.getAntecedent();
 		ArrayList<Rule> generatedRulesCopy = (ArrayList<Rule>) generatedRules.clone();
 		Iterator<Rule> genRuleIterator = generatedRulesCopy.iterator();
@@ -720,7 +732,8 @@ public class SeCo {
 					
 					
 					if(bestRuleAttribute.getName() == attribute.getName() ){
-						rulesToRemove.add(rule);
+						//rulesToRemove.add(rule);
+						genRuleIterator.remove();
 					}
 					
 				}
@@ -730,9 +743,9 @@ public class SeCo {
 			
 		}
 		
-		generatedRulesCopy.removeAll(rulesToRemove);
-		System.out.println(rulesToRemove);
-		System.out.println(generatedRulesCopy);
+		//generatedRulesCopy.removeAll(rulesToRemove);
+		//System.out.println(rulesToRemove);
+		//System.out.println(generatedRulesCopy);
 		if(generatedRulesCopy.isEmpty()){
 			return generatedRulesCopy;
 		}
@@ -757,10 +770,7 @@ public class SeCo {
 			
 		}
 		
-		//Check that the best Rule is refined
-		/* for(int i = 0; i < refinedRules.size(); i++){
-			System.out.println(refinedRules.get(i));
-		} */
+		
 		return refinedRules;
 		
 		

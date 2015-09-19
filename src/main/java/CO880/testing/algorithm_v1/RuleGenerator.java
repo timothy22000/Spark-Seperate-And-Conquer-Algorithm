@@ -165,6 +165,8 @@ public class RuleGenerator implements java.io.Serializable{
 				}
 
 			}
+			
+			reader.close();
 		} catch (IOException x) {
 			System.err.println(x);
 		}
