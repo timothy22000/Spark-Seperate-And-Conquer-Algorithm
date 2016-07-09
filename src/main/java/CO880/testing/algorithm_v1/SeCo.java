@@ -98,7 +98,7 @@ public class SeCo {
 	 */
 	public static void test(JavaSparkContext sc, String filename, final ArrayList<Rule> bestRuleHolder1){
 		//Load data
-			
+		// Replace with your actual test file location in your HDFS
 		TEST_FILE_LOCATION = "hdfs:///user/ts444/" + filename;
 		
 		JavaRDD<String> arff = sc.textFile(TEST_FILE_LOCATION);
@@ -134,7 +134,6 @@ public class SeCo {
 					@Override
 					public Tuple2<String, Integer> call(List<String> t)
 							throws Exception {
-						// TODO Auto-generated method stub
 						//System.out.println(bestRuleHolder1);
 						
 						outerloop:
@@ -237,7 +236,6 @@ public class SeCo {
 	/**
 	 * Local version of testing list of bestRule on a dataset
 	 * @param sc
-	 * @param filename
 	 * @param bestRuleHolder1
 	 */
 	public static void test(JavaSparkContext sc, final ArrayList<Rule> bestRuleHolder1){
@@ -493,7 +491,6 @@ public class SeCo {
 	/**
 	 * Local version of the SeCo algorithm on a training dataset where rules will be found and refined then added to the list of best rules.
 	 * @param sc
-	 * @param filename
 	 */
 	public static void train(JavaSparkContext sc){
 		//Load data
